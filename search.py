@@ -3,6 +3,9 @@ import requests
 from pprint import pprint
 import datetime
 
+import config
+
+# Get current time
 def get_current_time():
     x = datetime.datetime.now().time()
     return str(x).replace(":","-").replace(".", "-")
@@ -14,16 +17,22 @@ skillset_name = "cogsrch-py-skillset-" + time_of_run
 index_name = "cogsrch-py-index-" + time_of_run
 indexer_name = "cogsrch-py-indexer" + time_of_run
 
+# Retrieve the cog search admin key from key vault
+cog_search_key = config.retreive_secret("cog-search-admin-key")
+
 # Setup the endpoint
 endpoint = 'https://team6textanalytics-asbwqm5wr7ncmbs.search.windows.net/'
 headers = {'Content-Type': 'application/json',
-           'api-key': '5B50BD6442BBB20087444AC049BE5C7A'}
+           'api-key': cog_search_key}
 params = {
     'api-version': '2020-06-30'
 }
 
+# Retrieve storage conn string from the key vault
+storage_conn_str = config.retreive_secret("storage-conn-string")
+
 # Create a data source
-datasourceConnectionString = 'DefaultEndpointsProtocol=https;AccountName=ajithrsourceblob2;AccountKey=KsIPRoV7hrKZC9oMXNnHOaZKZqNl+DxT418T5uMpMP62uAW9mafxeNeWc5MyXN6YGdxQqJEmj4vryTnafZnDhA==;EndpointSuffix=core.windows.net'
+datasourceConnectionString = storage_conn_str
 datasource_payload = {
     "name": datasource_name,
     "description": "Demo files to demonstrate cognitive search capabilities.",
