@@ -18,7 +18,7 @@ index_name = "cogsrch-py-index-" + time_of_run
 indexer_name = "cogsrch-py-indexer" + time_of_run
 
 # Retrieve the cog search admin key from key vault
-cog_search_key = config.retreive_secret("cog-search-admin-key")
+cog_search_key = config.COG_SEARCH_KEY
 
 # Setup the endpoint
 endpoint = 'https://team6textanalytics-asbwqm5wr7ncmbs.search.windows.net/'
@@ -29,7 +29,7 @@ params = {
 }
 
 # Retrieve storage conn string from the key vault
-storage_conn_str = config.retreive_secret("storage-conn-string")
+storage_conn_str = config.STORAGE_CONN_STR
 
 # Create a data source
 datasourceConnectionString = storage_conn_str
@@ -46,7 +46,7 @@ datasource_payload = {
 }
 r = requests.put(endpoint + "/datasources/" + datasource_name,
                  data=json.dumps(datasource_payload), headers=headers, params=params)
-# print(r.text)
+print(r.text)
 print(r.status_code)
 
 # Create a skillset
@@ -57,19 +57,19 @@ skillset_payload = {
     "skills":
     [
         {
-            "@odata.type": "#Microsoft.Skills.Text.V3.EntityRecognitionSkill",
-            "categories": ["Organization"],
+            "@odata.type": "#Microsoft.Skills.Text.NamedEntityRecognitionSkill",
+            "categories": [ "Person", "Location", "Organization"],
             "defaultLanguageCode": "en",
             "inputs": [
                 {
-                    "name": "text", 
+                    "name": "text",
                     "source": "/document/content"
                 }
-            ],
-            "outputs": [
+                ],
+                "outputs": [
                 {
-                    "name": "organizations", 
-                    "targetName": "organizations"
+                    "name": "persons",
+                    "targetName": "persons"
                 }
             ]
         },
@@ -85,27 +85,6 @@ skillset_payload = {
                 {
                     "name": "languageCode",
                     "targetName": "languageCode"
-                }
-            ]
-        },
-        {
-            "@odata.type": "#Microsoft.Skills.Text.SplitSkill",
-            "textSplitMode": "pages",
-            "maximumPageLength": 4000,
-            "inputs": [
-                {
-                    "name": "text",
-                    "source": "/document/content"
-                },
-                {
-                    "name": "languageCode",
-                    "source": "/document/languageCode"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "textItems",
-                    "targetName": "pages"
                 }
             ]
         },
