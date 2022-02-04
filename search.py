@@ -17,16 +17,10 @@ skillset_name = "cogsrch-py-skillset-" + time_of_run
 index_name = "cogsrch-py-index-" + time_of_run
 indexer_name = "cogsrch-py-indexer" + time_of_run
 
-# Retrieve the cog search admin key from key vault
-cog_search_key = config.COG_SEARCH_KEY
-
 # Setup the endpoint
-endpoint = 'https://team6textanalytics-asbwqm5wr7ncmbs.search.windows.net/'
-headers = {'Content-Type': 'application/json',
-           'api-key': cog_search_key}
-params = {
-    'api-version': '2020-06-30'
-}
+endpoint = config.COG_SEARCH_END_POINT
+headers = config.COG_SEARCH_API_HEADERS
+params = config.COG_SEARCH_API_PARAMS
 
 # Retrieve storage conn string from the key vault
 storage_conn_str = config.STORAGE_CONN_STR
@@ -41,7 +35,7 @@ datasource_payload = {
         "connectionString": datasourceConnectionString
     },
     "container": {
-        "name": "collateral"
+        "name": config.BLOB_CONTAINER
     }
 }
 r = requests.put(endpoint + "/datasources/" + datasource_name,
@@ -50,177 +44,30 @@ print(r.text)
 print(r.status_code)
 
 # Create a skillset
-skillset_payload = {
-    "name": skillset_name,
-    "description":
-    "Extract entities, detect language and extract key-phrases",
-    "skills":
-    [
-        {
-            "@odata.type": "#Microsoft.Skills.Text.NamedEntityRecognitionSkill",
-            "categories": [ "Person", "Location", "Organization"],
-            "defaultLanguageCode": "en",
-            "inputs": [
-                {
-                    "name": "text",
-                    "source": "/document/content"
-                }
-                ],
-                "outputs": [
-                {
-                    "name": "persons",
-                    "targetName": "persons"
-                }
-            ]
-        },
-        {
-            "@odata.type": "#Microsoft.Skills.Text.LanguageDetectionSkill",
-            "inputs": [
-                {
-                    "name": "text", 
-                    "source": "/document/content"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "languageCode",
-                    "targetName": "languageCode"
-                }
-            ]
-        },
-        {
-            "@odata.type": "#Microsoft.Skills.Text.KeyPhraseExtractionSkill",
-            "context": "/document/pages/*",
-            "inputs": [
-                {
-                    "name": "text", 
-                    "source": "/document/pages/*"
-                },
-                {
-                    "name": "languageCode", 
-                    "source": "/document/languageCode"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "keyPhrases",
-                    "targetName": "keyPhrases"
-                }
-            ]
-        }
-    ]
-}
-
+f = open('./skillset.json')
+skillset_payload = json.load(f)
+skillset_payload["name"] = skillset_name
 r = requests.put(endpoint + "/skillsets/" + skillset_name,
                  data=json.dumps(skillset_payload), headers=headers, params=params)
 # print(r.text)
 print(r.status_code)
 
 # Create an index
-index_payload = {
-    "name": index_name,
-    "fields": [
-        {
-            "name": "id",
-            "type": "Edm.String",
-            "key": "true",
-            "searchable": "true",
-            "filterable": "false",
-            "facetable": "false",
-            "sortable": "true"
-        },
-        {
-            "name": "content",
-            "type": "Edm.String",
-            "sortable": "false",
-            "searchable": "true",
-            "filterable": "false",
-            "facetable": "false"
-        },
-        {
-            "name": "url",
-            "type": "Edm.String",
-            "searchable": "true",
-            "filterable": "false",
-            "facetable": "false"
-        },
-        {
-            "name": "file_name",
-            "type": "Edm.String",
-            "searchable": "true",
-            "filterable": "false",
-            "facetable": "false"
-        },
-        { 
-            "name": "metadata_storage_name", 
-            "type": "Edm.String", 
-            "searchable": "false", 
-            "filterable": "true", 
-            "sortable": "true"  
-        },
-        { 
-            "name": "metadata_storage_size", 
-            "type": "Edm.Int64", 
-            "searchable": "false", 
-            "filterable": "true", 
-            "sortable": "true"  
-        },
-        { 
-            "name": "metadata_creation_date", 
-            "type": "Edm.DateTimeOffset", 
-            "searchable": "false",
-            "filterable": "true",
-            "sortable": "true"
-        }
-    ]
-}
-
+f = open('./index.json')
+index_payload = json.load(f)
+index_payload["name"] = index_name
 r = requests.put(endpoint + "/indexes/" + index_name,
                  data=json.dumps(index_payload), headers=headers, params=params)
 # print(r.text)
 print(r.status_code)
 
 # Create an indexer
-indexer_payload = {
-    "name": indexer_name,
-    "dataSourceName": datasource_name,
-    "targetIndexName": index_name,
-    "skillsetName": skillset_name,
-    "fieldMappings": [
-        {
-            "sourceFieldName": "metadata_storage_path",
-            "targetFieldName": "id",
-            "mappingFunction":
-            {"name": "base64Encode"}
-        },
-        {
-            "sourceFieldName": "content",
-            "targetFieldName": "content"
-        }
-    ],
-    "outputFieldMappings":
-    [
-        {
-            "sourceFieldName": "/document/metadata_storage_path",
-            "targetFieldName": "url"
-        },
-        {
-            "sourceFieldName": "/document/metadata_storage_name",
-            "targetFieldName": "file_name"
-        }
-    ],
-    "parameters":
-    {
-        "maxFailedItems": -1,
-        "maxFailedItemsPerBatch": -1,
-        "configuration":
-        {
-            "dataToExtract": "contentAndMetadata",
-            "imageAction": "generateNormalizedImages"
-        }
-    }
-}
-
+f = open('./indexer.json')
+indexer_payload = json.load(f)
+indexer_payload["name"] = indexer_name
+indexer_payload["dataSourceName"] = datasource_name
+indexer_payload["targetIndexName"] = index_name
+indexer_payload["skillsetName"] = skillset_name
 r = requests.put(endpoint + "/indexers/" + indexer_name,
                  data=json.dumps(indexer_payload), headers=headers, params=params)
 # print(r.text)

@@ -22,3 +22,8 @@ def retreive_secret(key):
 
 COG_SEARCH_KEY = retreive_secret("cog-search-admin-key")
 STORAGE_CONN_STR = retreive_secret("storage-conn-string")
+COG_SEARCH_END_POINT = env.get("AZURE_COG_SEARCH_END_POINT", "")
+COG_SEARCH_API_VERSION = "?api-version=2020-06-30"
+COG_SEARCH_API_HEADERS = {'Content-Type': 'application/json', 'api-key': COG_SEARCH_KEY}
+COG_SEARCH_API_PARAMS = { 'api-version': '2020-06-30' }
+BLOB_CONTAINER = "collateral"

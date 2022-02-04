@@ -1,0 +1,35 @@
+{
+    "fieldMappings": [
+        {
+            "sourceFieldName": "metadata_storage_path",
+            "targetFieldName": "id",
+            "mappingFunction":
+            {"name": "base64Encode"}
+        },
+        {
+            "sourceFieldName": "content",
+            "targetFieldName": "content"
+        }
+    ],
+    "outputFieldMappings":
+    [
+        {
+            "sourceFieldName": "/document/metadata_storage_path",
+            "targetFieldName": "url"
+        },
+        {
+            "sourceFieldName": "/document/metadata_storage_name",
+            "targetFieldName": "file_name"
+        }
+    ],
+    "parameters":
+    {
+        "maxFailedItems": -1,
+        "maxFailedItemsPerBatch": -1,
+        "configuration":
+        {
+            "dataToExtract": "contentAndMetadata",
+            "imageAction": "generateNormalizedImages"
+        }
+    }
+}

@@ -1,0 +1,178 @@
+{
+    "skills": [
+        {
+            "@odata.type": "#Microsoft.Skills.Text.V3.SentimentSkill",
+            "name": "SentimentSkill",
+            "description": "",
+            "context": "/document",
+            "defaultLanguageCode": "en",
+            "modelVersion": "",
+            "includeOpinionMining": true,
+            "inputs": [
+                {
+                    "name": "text",
+                    "source": "/document/content",
+                    "sourceContext": null,
+                    "inputs": []
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "sentiment",
+                    "targetName": "sentiment"
+                },
+                {
+                    "name": "confidenceScores",
+                    "targetName": "sentimentScores"
+                }
+            ]
+        },
+        {
+            "@odata.type": "#Microsoft.Skills.Text.KeyPhraseExtractionSkill",
+            "name": "#2",
+            "description": null,
+            "context": "/document",
+            "defaultLanguageCode": "en",
+            "maxKeyPhraseCount": null,
+            "modelVersion": null,
+            "inputs": [
+                {
+                    "name": "text",
+                    "source": "/document/content",
+                    "sourceContext": null,
+                    "inputs": []
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "keyPhrases",
+                    "targetName": "keyPhrases"
+                }
+            ]
+        },
+        {
+            "@odata.type": "#Microsoft.Skills.Text.V3.EntityRecognitionSkill",
+            "name": "#3",
+            "description": null,
+            "context": "/document",
+            "categories": [
+                "Person",
+                "url",
+                "location"
+            ],
+            "defaultLanguageCode": "en",
+            "minimumPrecision": 0.5,
+            "modelVersion": null,
+            "inputs": [
+                {
+                    "name": "text",
+                    "source": "/document/content",
+                    "sourceContext": null,
+                    "inputs": []
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "persons",
+                    "targetName": "people"
+                },
+                {
+                    "name": "urls",
+                    "targetName": "urls"
+                },
+                {
+                    "name": "locations",
+                    "targetName": "locations"
+                }
+            ]
+        },
+        {
+            "@odata.type": "#Microsoft.Skills.Vision.OcrSkill",
+            "name": "#4",
+            "description": "Extracts text (plain and structured) from image.",
+            "context": "/document/normalized_images/*",
+            "textExtractionAlgorithm": null,
+            "lineEnding": "Space",
+            "defaultLanguageCode": "en",
+            "detectOrientation": true,
+            "inputs": [
+                {
+                    "name": "image",
+                    "source": "/document/normalized_images/*",
+                    "sourceContext": null,
+                    "inputs": []
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "text",
+                    "targetName": "imageText"
+                }
+            ]
+        },
+        {
+            "@odata.type": "#Microsoft.Skills.Text.MergeSkill",
+            "name": "#5",
+            "description": "Create merged_text, which includes all the textual representation of each image inserted at the right location in the content field.",
+            "context": "/document",
+            "insertPreTag": " ",
+            "insertPostTag": " ",
+            "inputs": [
+                {
+                    "name": "text",
+                    "source": "/document/content",
+                    "sourceContext": null,
+                    "inputs": []
+                },
+                {
+                    "name": "itemsToInsert",
+                    "source": "/document/normalized_images/*/imageText",
+                    "sourceContext": null,
+                    "inputs": []
+                },
+                {
+                    "name": "offsets",
+                    "source": "/document/normalized_images/*/contentOffset",
+                    "sourceContext": null,
+                    "inputs": []
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "mergedText",
+                    "targetName": "merged_text"
+                }
+            ]
+        },
+        {
+            "@odata.type": "#Microsoft.Skills.Vision.ImageAnalysisSkill",
+            "name": "#6",
+            "description": "Extract image analysis.",
+            "context": "/document/normalized_images/*",
+            "defaultLanguageCode": "en",
+            "visualFeatures": [
+                "tags",
+                "description"
+            ],
+            "details": [],
+            "inputs": [
+                {
+                    "name": "image",
+                    "source": "/document/normalized_images/*",
+                    "sourceContext": null,
+                    "inputs": []
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "description",
+                    "targetName": "img_description"
+                },
+                {
+                    "name": "tags",
+                    "targetName": "img_tags"
+                }
+            ]
+        }
+    ]
+}
